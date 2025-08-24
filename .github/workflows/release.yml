@@ -12,6 +12,8 @@ jobs:
     permissions:
       contents: write
       actions: write
+      pull-requests: write
+      issues: write
 
     steps:
     - name: Checkout code
@@ -36,46 +38,37 @@ jobs:
         echo "VERSION=$VERSION" >> $GITHUB_OUTPUT
         echo "Extracted version: $VERSION"
 
-    - name: Create Release
+    - name: Create Release with gh CLI
       id: create_release
-      uses: actions/create-release@v1
       env:
-        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-      with:
-        tag_name: ${{ github.ref_name }}
-        release_name: FastDrop ${{ github.ref_name }}
-        body: |
-          ## Changes in this release
-          - New features and improvements
-          - Bug fixes and optimizations
-          
-          ## Download
-          Download the DMG file below to install FastDrop on macOS.
-        draft: false
-        prerelease: false
+        GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      run: |
+        gh release create ${{ github.ref_name }} \
+          --title "FastDrop ${{ github.ref_name }}" \
+          --notes "## Changes in this release
+        - New features and improvements  
+        - Bug fixes and optimizations
+        
+        ## Download
+        Download the DMG file below to install FastDrop on macOS." \
+          --draft=false \
+          --prerelease=false
+        
+        # Get the upload URL for later steps
+        echo "upload_url=$(gh api repos/${{ github.repository }}/releases/tags/${{ github.ref_name }} --jq '.upload_url')" >> $GITHUB_OUTPUT
 
     - name: Build DMG
       run: npm run build && npx electron-builder --mac --publish=never
 
-    - name: Upload DMG to Release
-      uses: actions/upload-release-asset@v1
+    - name: Upload Assets to Release
       env:
-        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-      with:
-        upload_url: ${{ steps.create_release.outputs.upload_url }}
-        asset_path: ./build/FastDrop-${{ steps.version.outputs.VERSION }}-arm64.dmg
-        asset_name: FastDrop-${{ steps.version.outputs.VERSION }}-arm64.dmg
-        asset_content_type: application/octet-stream
-
-    - name: Upload DMG blockmap to Release
-      uses: actions/upload-release-asset@v1
-      env:
-        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-      with:
-        upload_url: ${{ steps.create_release.outputs.upload_url }}
-        asset_path: ./build/FastDrop-${{ steps.version.outputs.VERSION }}-arm64.dmg.blockmap
-        asset_name: FastDrop-${{ steps.version.outputs.VERSION }}-arm64.dmg.blockmap
-        asset_content_type: application/octet-stream
+        GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      run: |
+        # Upload DMG file
+        gh release upload ${{ github.ref_name }} ./build/FastDrop-${{ steps.version.outputs.VERSION }}-arm64.dmg
+        
+        # Upload blockmap file  
+        gh release upload ${{ github.ref_name }} ./build/FastDrop-${{ steps.version.outputs.VERSION }}-arm64.dmg.blockmap
 
     - name: Create latest.yml for auto-updater
       run: |
@@ -90,12 +83,8 @@ jobs:
         releaseDate: $(date -u +"%Y-%m-%dT%H:%M:%S.%3NZ")
         EOF
 
-    - name: Upload latest.yml to Release
-      uses: actions/upload-release-asset@v1
+    - name: Upload latest-mac.yml to Release
       env:
-        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-      with:
-        upload_url: ${{ steps.create_release.outputs.upload_url }}
-        asset_path: ./build/latest-mac.yml
-        asset_name: latest-mac.yml
-        asset_content_type: text/yaml
+        GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      run: |
+        gh release upload ${{ github.ref_name }} ./build/latest-mac.yml
