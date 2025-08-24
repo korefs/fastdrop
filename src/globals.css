@@ -1,0 +1,62 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    /* Custom Dark Theme - Based on your palette */
+    --background: 0 0% 13.1%; /* #212121 */
+    --foreground: 0 0% 68.6%; /* #afafaf */
+    --card: 0 0% 9.4%; /* #181818 */
+    --card-foreground: 0 0% 68.6%; /* #afafaf */
+    --popover: 0 0% 9.4%; /* #181818 */
+    --popover-foreground: 0 0% 68.6%; /* #afafaf */
+    --primary: 0 0% 17.6%; /* #2d2d2d */
+    --primary-foreground: 0 0% 90%;
+    --secondary: 0 0% 9.4%; /* #181818 */
+    --secondary-foreground: 0 0% 68.6%; /* #afafaf */
+    --muted: 0 0% 17.6%; /* #2d2d2d */
+    --muted-foreground: 0 0% 58.6%;
+    --accent: 0 0% 17.6%; /* #2d2d2d */
+    --accent-foreground: 0 0% 68.6%; /* #afafaf */
+    --destructive: 0 84.2% 60.2%;
+    --destructive-foreground: 0 0% 98%;
+    --border: 0 0% 20%; /* Slightly lighter than primary */
+    --input: 0 0% 17.6%; /* #2d2d2d */
+    --ring: 0 0% 68.6%; /* #afafaf */
+    --radius: 0.5rem;
+  }
+
+  .dark {
+    /* Same as root since we're using dark theme by default */
+    --background: 0 0% 13.1%; /* #212121 */
+    --foreground: 0 0% 68.6%; /* #afafaf */
+    --card: 0 0% 9.4%; /* #181818 */
+    --card-foreground: 0 0% 68.6%; /* #afafaf */
+    --popover: 0 0% 9.4%; /* #181818 */
+    --popover-foreground: 0 0% 68.6%; /* #afafaf */
+    --primary: 0 0% 17.6%; /* #2d2d2d */
+    --primary-foreground: 0 0% 90%;
+    --secondary: 0 0% 9.4%; /* #181818 */
+    --secondary-foreground: 0 0% 68.6%; /* #afafaf */
+    --muted: 0 0% 17.6%; /* #2d2d2d */
+    --muted-foreground: 0 0% 58.6%;
+    --accent: 0 0% 17.6%; /* #2d2d2d */
+    --accent-foreground: 0 0% 68.6%; /* #afafaf */
+    --destructive: 0 62.8% 30.6%;
+    --destructive-foreground: 0 0% 98%;
+    --border: 0 0% 20%;
+    --input: 0 0% 17.6%; /* #2d2d2d */
+    --ring: 0 0% 68.6%; /* #afafaf */
+  }
+}
+
+@layer base {
+  * {
+    border-color: hsl(var(--border));
+  }
+  body {
+    background-color: hsl(var(--background));
+    color: hsl(var(--foreground));
+  }
+}
