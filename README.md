@@ -4,7 +4,7 @@ A beautiful macOS menu bar app for quick file uploads to 0x0.st and Google Drive
 
 ## Demo
 
-![Demo do projeto](assets/demo.gif)
+![Demo do projeto](fdrop/demo.gif)
 
 ## Features
 
