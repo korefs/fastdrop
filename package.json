@@ -1,6 +1,6 @@
 {
   "name": "fastdrop2",
-  "version": "1.1.0",
+  "version": "1.1.1",
   "main": "dist/main/main.js",
   "homepage": "./",
   "scripts": {
@@ -75,7 +75,7 @@
     "publish": {
       "provider": "github",
       "owner": "kore",
-      "repo": "fastdrop2"
+      "repo": "fastdrop"
     }
   }
 }
