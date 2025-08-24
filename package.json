@@ -10,7 +10,7 @@
     "build": "npm run build:vite && npm run build:electron",
     "build:vite": "vite build",
     "build:electron": "tsc --project tsconfig.electron.json",
-    "build:preload": "tsc src/preload.ts --outDir dist/main --target es2020 --lib es2020 --moduleResolution node --allowJs",
+    "build:preload": "tsc --project tsconfig.preload.json",
     "postinstall": "npm run build:preload",
     "electron": "electron dist/main/main.js",
     "package": "npm run build && electron-builder",
