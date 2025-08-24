@@ -23,6 +23,8 @@ declare global {
       onUpdateAvailable: (callback: (info: any) => void) => void
       onDownloadProgress: (callback: (progress: any) => void) => void
       onUpdateDownloaded: (callback: (info: any) => void) => void
+      setAutoCopy: (enabled: boolean) => Promise<boolean>
+      getAutoCopy: () => Promise<boolean>
     }
   }
 }
@@ -52,6 +54,7 @@ function App() {
   const [downloadProgress, setDownloadProgress] = useState(0)
   const [currentVersion, setCurrentVersion] = useState('')
   const [newVersion, setNewVersion] = useState('')
+  const [autoCopy, setAutoCopyState] = useState(false)
 
   useEffect(() => {
     if (window.electronAPI) {
@@ -98,6 +101,11 @@ function App() {
 
       window.electronAPI.onUpdateDownloaded(() => {
         setUpdateDownloaded(true)
+      })
+
+      // Load auto-copy setting
+      window.electronAPI.getAutoCopy().then((enabled) => {
+        setAutoCopyState(enabled)
       })
     }
   }, [])
@@ -150,6 +158,11 @@ function App() {
           url: url.trim() 
         } : f
       ))
+
+      // Auto-copy URL if enabled
+      if (autoCopy && url) {
+        copyToClipboard(url.trim())
+      }
     } catch (error) {
       clearInterval(progressInterval)
       setFiles(prev => prev.map((f, i) => 
@@ -218,6 +231,22 @@ function App() {
   const installUpdate = () => {
     if (window.electronAPI) {
       window.electronAPI.installUpdate()
+    }
+  }
+
+  const toggleAutoCopy = async () => {
+    if (window.electronAPI) {
+      try {
+        const newAutoCopy = !autoCopy
+        const success = await window.electronAPI.setAutoCopy(newAutoCopy)
+        if (success) {
+          setAutoCopyState(newAutoCopy)
+        } else {
+          console.error('Failed to set auto-copy')
+        }
+      } catch (error) {
+        console.error('Failed to toggle auto-copy:', error)
+      }
     }
   }
 
@@ -450,6 +479,32 @@ function App() {
                       className={cn(
                         "inline-block h-4 w-4 transform rounded-full bg-background transition-transform",
                         autoStart ? "translate-x-6" : "translate-x-1"
+                      )}
+                    />
+                  </button>
+                </div>
+                
+                <div className="flex items-center justify-between">
+                  <div>
+                    <label htmlFor="autoCopy" className="text-sm font-medium text-foreground">
+                      Copiar link automaticamente
+                    </label>
+                    <p className="text-xs text-muted-foreground mt-1">
+                      O link será copiado automaticamente após o upload
+                    </p>
+                  </div>
+                  <button
+                    id="autoCopy"
+                    onClick={toggleAutoCopy}
+                    className={cn(
+                      "relative inline-flex h-6 w-11 items-center rounded-full transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background",
+                      autoCopy ? "bg-primary" : "bg-input"
+                    )}
+                  >
+                    <span
+                      className={cn(
+                        "inline-block h-4 w-4 transform rounded-full bg-background transition-transform",
+                        autoCopy ? "translate-x-6" : "translate-x-1"
                       )}
                     />
                   </button>

@@ -46,6 +46,12 @@ const electronAPI = {
     
   onUpdateDownloaded: (callback: (info: any) => void) =>
     ipcRenderer.on('update-downloaded', (_, info) => callback(info)),
+    
+  setAutoCopy: (enabled: boolean) =>
+    ipcRenderer.invoke('set-auto-copy', enabled),
+    
+  getAutoCopy: () =>
+    ipcRenderer.invoke('get-auto-copy'),
 }
 
 contextBridge.exposeInMainWorld('electronAPI', electronAPI)

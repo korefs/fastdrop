@@ -491,3 +491,46 @@ ipcMain.handle('install-update', () => {
 ipcMain.handle('get-version', () => {
   return app.getVersion()
 })
+
+// Auto copy IPC handlers
+ipcMain.handle('set-auto-copy', async (_, enabled: boolean) => {
+  try {
+    await ensureConfigDir()
+    const configPath = getConfigPath()
+    
+    let config: any = {}
+    
+    try {
+      if (existsSync(configPath)) {
+        const configData = await readFile(configPath, 'utf-8')
+        config = JSON.parse(configData)
+      }
+    } catch {
+      config = {}
+    }
+    
+    config.autoCopy = enabled
+    await writeFile(configPath, JSON.stringify(config, null, 2), 'utf-8')
+    
+    return true
+  } catch (error) {
+    console.error('Failed to set auto-copy:', error)
+    return false
+  }
+})
+
+ipcMain.handle('get-auto-copy', async () => {
+  try {
+    const configPath = getConfigPath()
+    if (!existsSync(configPath)) {
+      return false // Default is false
+    }
+    
+    const configData = await readFile(configPath, 'utf-8')
+    const config = JSON.parse(configData)
+    
+    return config.autoCopy || false
+  } catch {
+    return false
+  }
+})
