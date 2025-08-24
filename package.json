@@ -74,7 +74,7 @@
     },
     "publish": {
       "provider": "github",
-      "owner": "kore",
+      "owner": "korefs",
       "repo": "fastdrop"
     }
   }
