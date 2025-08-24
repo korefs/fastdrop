@@ -39,7 +39,17 @@ const getAutoStart = (): boolean => {
 
 // Auto updater configuration
 if (!isDev) {
+  // Configure the update server
+  autoUpdater.setFeedURL({
+    provider: 'github',
+    owner: 'korefs',
+    repo: 'fastdrop'
+  })
+  
   autoUpdater.checkForUpdatesAndNotify()
+} else {
+  // In development, we can test by setting a specific feed URL
+  console.log('Development mode - auto updater disabled')
 }
 
 autoUpdater.on('checking-for-update', () => {
@@ -56,7 +66,8 @@ autoUpdater.on('update-not-available', (info) => {
 })
 
 autoUpdater.on('error', (err) => {
-  console.log('Error in auto-updater. ' + err)
+  console.log('Error in auto-updater:', err)
+  mainWindow?.webContents.send('update-error', err.message)
 })
 
 autoUpdater.on('download-progress', (progressObj) => {
