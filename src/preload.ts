@@ -52,6 +52,9 @@ const electronAPI = {
     
   getAutoCopy: () =>
     ipcRenderer.invoke('get-auto-copy'),
+    
+  showNotification: (title: string, body: string, url?: string) =>
+    ipcRenderer.invoke('show-notification', title, body, url),
 }
 
 contextBridge.exposeInMainWorld('electronAPI', electronAPI)

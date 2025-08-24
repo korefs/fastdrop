@@ -25,6 +25,7 @@ declare global {
       onUpdateDownloaded: (callback: (info: any) => void) => void
       setAutoCopy: (enabled: boolean) => Promise<boolean>
       getAutoCopy: () => Promise<boolean>
+      showNotification: (title: string, body: string, url?: string) => Promise<boolean>
     }
   }
 }
@@ -162,6 +163,20 @@ function App() {
       // Auto-copy URL if enabled
       if (autoCopy && url) {
         copyToClipboard(url.trim())
+      }
+
+      // Show notification for successful upload
+      if (window.electronAPI && url) {
+        const fileName = file.name
+        const notificationBody = autoCopy 
+          ? `${fileName} uploaded successfully! Link copied to clipboard.`
+          : `${fileName} uploaded successfully! Click to view in app.`
+        
+        window.electronAPI.showNotification(
+          'FastDrop - Upload Complete',
+          notificationBody,
+          url.trim()
+        )
       }
     } catch (error) {
       clearInterval(progressInterval)

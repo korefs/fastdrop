@@ -1,13 +1,13 @@
-import { app, BrowserWindow, Tray, Menu, nativeImage, ipcMain, dialog } from 'electron'
-import { join } from 'path'
-import { readFile, writeFile, mkdir } from 'fs/promises'
-import { existsSync } from 'fs'
-import { google } from 'googleapis'
-import { Readable } from 'stream'
+import { app, BrowserWindow, dialog, ipcMain, Menu, nativeImage, Notification, Tray } from 'electron'
+import { autoUpdater } from 'electron-updater'
 import FormData from 'form-data'
+import { existsSync } from 'fs'
+import { mkdir, readFile, writeFile } from 'fs/promises'
+import { google } from 'googleapis'
 import fetch from 'node-fetch'
 import { homedir } from 'os'
-import { autoUpdater } from 'electron-updater'
+import { join } from 'path'
+import { Readable } from 'stream'
 
 const isDev = process.env.NODE_ENV === 'development'
 
@@ -228,10 +228,21 @@ function showWindow(): void {
   }
 }
 
-app.whenReady().then(() => {
+app.whenReady().then(async () => {
   // Hide app from dock on macOS
   if (process.platform === 'darwin' && app.dock) {
     app.dock.hide()
+  }
+  
+  // Request notification permission on macOS
+  if (process.platform === 'darwin' && Notification.isSupported()) {
+    try {
+      // On macOS, we need to set the app name for notifications
+      app.setAppUserModelId('com.fastdrop.app')
+      console.log('Notification permissions configured')
+    } catch (error) {
+      console.error('Failed to configure notification permissions:', error)
+    }
   }
   
   createWindow()
@@ -484,7 +495,8 @@ ipcMain.handle('get-auto-start', async () => {
 ipcMain.handle('check-for-updates', async () => {
   if (!isDev) {
     try {
-      return await autoUpdater.checkForUpdates()
+      const result = await autoUpdater.checkForUpdates()
+
     } catch (error) {
       console.error('Failed to check for updates:', error)
       return null
@@ -501,6 +513,40 @@ ipcMain.handle('install-update', () => {
 
 ipcMain.handle('get-version', () => {
   return app.getVersion()
+})
+
+// Notification IPC handler
+ipcMain.handle('show-notification', async (_, title: string, body: string, url?: string) => {
+  try {
+    if (!Notification.isSupported()) {
+      console.log('Notifications not supported')
+      return false
+    }
+
+    const notification = new Notification({
+      title: title,
+      body: body,
+      icon: nativeImage.createFromNamedImage('NSImageNameShareTemplate', [64, 64]),
+      silent: false
+    })
+
+    // If URL is provided, handle click to copy to clipboard
+    if (url) {
+      notification.on('click', () => {
+        // Focus the main window when notification is clicked
+        if (mainWindow) {
+          mainWindow.show()
+          mainWindow.focus()
+        }
+      })
+    }
+
+    notification.show()
+    return true
+  } catch (error) {
+    console.error('Failed to show notification:', error)
+    return false
+  }
 })
 
 // Auto copy IPC handlers
