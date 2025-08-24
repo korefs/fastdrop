@@ -58,6 +58,12 @@ const electronAPI = {
     
   showNotification: (title: string, body: string, url?: string) =>
     ipcRenderer.invoke('show-notification', title, body, url),
+    
+  saveUploadHistory: (files: any[]) =>
+    ipcRenderer.invoke('save-upload-history', files),
+    
+  getUploadHistory: () =>
+    ipcRenderer.invoke('get-upload-history'),
 }
 
 contextBridge.exposeInMainWorld('electronAPI', electronAPI)

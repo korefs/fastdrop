@@ -606,3 +606,43 @@ ipcMain.handle('get-auto-copy', async () => {
     return false
   }
 })
+
+ipcMain.handle('save-upload-history', async (_, files) => {
+  try {
+    await ensureConfigDir()
+    const configPath = getConfigPath()
+    
+    let config: any = {}
+    
+    try {
+      if (existsSync(configPath)) {
+        const configData = await readFile(configPath, 'utf-8')
+        config = JSON.parse(configData)
+      }
+    } catch {
+      config = {}
+    }
+    
+    config.uploadHistory = files
+    await writeFile(configPath, JSON.stringify(config, null, 2), 'utf-8')
+    
+  } catch (error) {
+    console.error('Failed to save upload history:', error)
+  }
+})
+
+ipcMain.handle('get-upload-history', async () => {
+  try {
+    const configPath = getConfigPath()
+    if (!existsSync(configPath)) {
+      return []
+    }
+    
+    const configData = await readFile(configPath, 'utf-8')
+    const config = JSON.parse(configData)
+    
+    return config.uploadHistory || []
+  } catch {
+    return []
+  }
+})

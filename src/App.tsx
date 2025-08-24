@@ -27,6 +27,8 @@ declare global {
       setAutoCopy: (enabled: boolean) => Promise<boolean>
       getAutoCopy: () => Promise<boolean>
       showNotification: (title: string, body: string, url?: string) => Promise<boolean>
+      saveUploadHistory: (files: FileUpload[]) => Promise<void>
+      getUploadHistory: () => Promise<FileUpload[]>
     }
   }
 }
@@ -58,6 +60,12 @@ function App() {
   const [newVersion, setNewVersion] = useState('')
   const [autoCopy, setAutoCopyState] = useState(false)
   const [updateError, setUpdateError] = useState('')
+
+  const saveFilesToHistory = async (filesToSave: FileUpload[]) => {
+    if (window.electronAPI) {
+      await window.electronAPI.saveUploadHistory(filesToSave)
+    }
+  }
 
   useEffect(() => {
     if (window.electronAPI) {
@@ -117,6 +125,11 @@ function App() {
       window.electronAPI.getAutoCopy().then((enabled) => {
         setAutoCopyState(enabled)
       })
+
+      // Load upload history
+      window.electronAPI.getUploadHistory().then((history) => {
+        setFiles(history)
+      })
     }
   }, [])
 
@@ -135,7 +148,9 @@ function App() {
       if (existingFile) {
         return prev
       }
-      return [...prev, newFile]
+      const updatedFiles = [...prev, newFile]
+      saveFilesToHistory(updatedFiles)
+      return updatedFiles
     })
   }
 
@@ -160,14 +175,16 @@ function App() {
       const url = await window.electronAPI.uploadFile(file.path, selectedService)
       clearInterval(progressInterval)
       
-      setFiles(prev => prev.map((f, i) => 
+      const successFiles = files.map((f, i) => 
         i === fileIndex ? { 
           ...f, 
-          state: 'success', 
+          state: 'success' as UploadState, 
           progress: 100, 
           url: url.trim() 
         } : f
-      ))
+      )
+      setFiles(successFiles)
+      saveFilesToHistory(successFiles)
 
       // Auto-copy URL if enabled
       if (autoCopy && url) {
@@ -189,19 +206,23 @@ function App() {
       }
     } catch (error) {
       clearInterval(progressInterval)
-      setFiles(prev => prev.map((f, i) => 
+      const errorFiles = files.map((f, i) => 
         i === fileIndex ? { 
           ...f, 
-          state: 'error', 
+          state: 'error' as UploadState, 
           progress: 0, 
           error: error instanceof Error ? error.message : 'Upload failed' 
         } : f
-      ))
+      )
+      setFiles(errorFiles)
+      saveFilesToHistory(errorFiles)
     }
   }
 
   const removeFile = (index: number) => {
-    setFiles(prev => prev.filter((_, i) => i !== index))
+    const newFiles = files.filter((_, i) => i !== index)
+    setFiles(newFiles)
+    saveFilesToHistory(newFiles)
   }
 
   const copyToClipboard = (url: string) => {
