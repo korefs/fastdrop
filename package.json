@@ -1,6 +1,6 @@
 {
   "name": "fastdrop",
-  "version": "1.2.3",
+  "version": "1.2.4",
   "main": "dist/main/main.js",
   "homepage": "./",
   "scripts": {
@@ -71,11 +71,6 @@
       "category": "public.app-category.utilities",
       "target": "dmg",
       "type": "development"
-    },
-    "publish": {
-      "provider": "github",
-      "owner": "korefs",
-      "repo": "fastdrop"
     }
   }
 }
