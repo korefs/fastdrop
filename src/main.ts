@@ -43,8 +43,13 @@ if (!isDev) {
   autoUpdater.setFeedURL({
     provider: 'github',
     owner: 'korefs',
-    repo: 'fastdrop'
+    repo: 'fastdrop',
+    private: false,
+    releaseType: 'release'
   })
+  
+  // Enable logging for debugging
+  autoUpdater.logger = console
   
   autoUpdater.checkForUpdatesAndNotify()
 } else {
@@ -54,6 +59,7 @@ if (!isDev) {
 
 autoUpdater.on('checking-for-update', () => {
   console.log('Checking for update...')
+  mainWindow?.webContents.send('update-checking')
 })
 
 autoUpdater.on('update-available', (info) => {
@@ -66,12 +72,21 @@ autoUpdater.on('update-not-available', (info) => {
 })
 
 autoUpdater.on('error', (err) => {
-  console.log('Error in auto-updater:', err)
+  console.error('Error in auto-updater:', {
+    message: err.message,
+    stack: err.stack,
+    name: err.name
+  })
   mainWindow?.webContents.send('update-error', err.message)
 })
 
 autoUpdater.on('download-progress', (progressObj) => {
-  console.log('Download progress: ' + Math.round(progressObj.percent) + '%')
+  console.log('Download progress:', {
+    percent: Math.round(progressObj.percent),
+    transferred: progressObj.transferred,
+    total: progressObj.total,
+    bytesPerSecond: progressObj.bytesPerSecond
+  })
   mainWindow?.webContents.send('download-progress', progressObj)
 })
 

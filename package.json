@@ -68,9 +68,12 @@
       "node_modules/**/*"
     ],
     "mac": {
-      "category": "public.app-category.utilities",
+      "category": "public.app-category.utilities", 
       "target": "dmg",
-      "type": "development"
+      "type": "development",
+      "identity": null,
+      "gatekeeperAssess": false,
+      "entitlements": false
     }
   }
 }

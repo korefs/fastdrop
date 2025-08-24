@@ -23,6 +23,7 @@ declare global {
       onUpdateAvailable: (callback: (info: any) => void) => void
       onDownloadProgress: (callback: (progress: any) => void) => void
       onUpdateDownloaded: (callback: (info: any) => void) => void
+      onUpdateError: (callback: (error: string) => void) => void
       setAutoCopy: (enabled: boolean) => Promise<boolean>
       getAutoCopy: () => Promise<boolean>
       showNotification: (title: string, body: string, url?: string) => Promise<boolean>
@@ -56,6 +57,7 @@ function App() {
   const [currentVersion, setCurrentVersion] = useState('')
   const [newVersion, setNewVersion] = useState('')
   const [autoCopy, setAutoCopyState] = useState(false)
+  const [updateError, setUpdateError] = useState('')
 
   useEffect(() => {
     if (window.electronAPI) {
@@ -102,6 +104,13 @@ function App() {
 
       window.electronAPI.onUpdateDownloaded(() => {
         setUpdateDownloaded(true)
+      })
+
+      window.electronAPI.onUpdateError((error) => {
+        console.error('Update error:', error)
+        setUpdateError(error)
+        setUpdateAvailable(false)
+        setUpdateDownloaded(false)
       })
 
       // Load auto-copy setting
@@ -574,6 +583,25 @@ function App() {
                         className="text-xs px-3 py-1"
                       >
                         Reiniciar e Atualizar
+                      </Button>
+                    </div>
+                  )}
+                  
+                  {updateError && (
+                    <div className="space-y-2">
+                      <p className="text-sm text-destructive">
+                        Erro ao verificar updates: {updateError}
+                      </p>
+                      <Button
+                        onClick={() => {
+                          setUpdateError('')
+                          checkForUpdates()
+                        }}
+                        size="sm"
+                        variant="outline"
+                        className="text-xs px-3 py-1"
+                      >
+                        Tentar Novamente
                       </Button>
                     </div>
                   )}

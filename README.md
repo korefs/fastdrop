@@ -2,6 +2,12 @@
 
 A beautiful macOS menu bar app for quick file uploads to 0x0.st and Google Drive.
 
+## Demo
+
+<video width="600" controls>
+  <source src="fdrop/demo.mp4" type="video/mp4">
+</video>
+
 ## Features
 
 - 📁 Lives in your macOS menu bar

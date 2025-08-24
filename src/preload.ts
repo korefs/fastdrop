@@ -47,6 +47,9 @@ const electronAPI = {
   onUpdateDownloaded: (callback: (info: any) => void) =>
     ipcRenderer.on('update-downloaded', (_, info) => callback(info)),
     
+  onUpdateError: (callback: (error: string) => void) =>
+    ipcRenderer.on('update-error', (_, error) => callback(error)),
+    
   setAutoCopy: (enabled: boolean) =>
     ipcRenderer.invoke('set-auto-copy', enabled),
     
