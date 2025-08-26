@@ -3,11 +3,12 @@ import { Progress } from '@/components/ui/progress'
 import { cn } from '@/lib/utils'
 import { AlertCircle, Check, Cloud, FileUp, Settings, Upload, X } from 'lucide-react'
 import { useEffect, useState } from 'react'
+import { AvailableProviders } from './interfaces/types'
 
 declare global {
   interface Window {
     electronAPI: {
-      uploadFile: (filePath: string, service: 'googledrive' | '0x0') => Promise<string>
+      uploadFile: (filePath: string, service: AvailableProviders) => Promise<string>
       hideWindow: () => void
       showFileDialog: () => void
       onFileSelected: (callback: (filePath: string) => void) => void
@@ -47,7 +48,7 @@ interface FileUpload {
 function App() {
   const [isDragOver, setIsDragOver] = useState(false)
   const [files, setFiles] = useState<FileUpload[]>([])
-  const [selectedService, setSelectedService] = useState<'googledrive' | '0x0'>('0x0')
+  const [selectedService, setSelectedService] = useState<AvailableProviders>('0x0')
   const [showSettings, setShowSettings] = useState(false)
   const [googleCredentials, setGoogleCredentials] = useState<{clientId: string, clientSecret: string} | null>(null)
   const [clientId, setClientId] = useState('')

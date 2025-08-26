@@ -1,7 +1,8 @@
 import { contextBridge, ipcRenderer } from 'electron'
+import { AvailableProviders } from './interfaces/types'
 
 const electronAPI = {
-  uploadFile: (filePath: string, service: 'googledrive' | '0x0') =>
+  uploadFile: (filePath: string, service: AvailableProviders) =>
     ipcRenderer.invoke('upload-file', filePath, service),
   
   hideWindow: () => ipcRenderer.invoke('hide-window'),
