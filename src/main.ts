@@ -99,7 +99,7 @@ function createWindow(): void {
   mainWindow = new BrowserWindow({
     width: 400,
     height: 500,
-    show: true,
+    show: false,
     frame: false,
     resizable: false,
     transparent: true,
