@@ -1,4 +1,4 @@
-import { app, BrowserWindow, dialog, ipcMain, Menu, nativeImage, Notification, Tray } from 'electron'
+import { app, BrowserWindow, dialog, ipcMain, nativeImage, Notification, screen, Tray } from 'electron'
 import { autoUpdater } from 'electron-updater'
 import FormData from 'form-data'
 import { existsSync } from 'fs'
@@ -99,7 +99,7 @@ function createWindow(): void {
   mainWindow = new BrowserWindow({
     width: 400,
     height: 500,
-    show: false,
+    show: true,
     frame: false,
     resizable: false,
     transparent: true,
@@ -172,34 +172,34 @@ function createTray(): void {
   icon.setTemplateImage(true)
   tray = new Tray(icon)
   
-  const contextMenu = Menu.buildFromTemplate([
-    {
-      label: 'Upload File',
-      click: async () => {
-        const result = await dialog.showOpenDialog({
-          properties: ['openFile'],
-          filters: [
-            { name: 'All Files', extensions: ['*'] }
-          ]
-        })
+  // const contextMenu = Menu.buildFromTemplate([
+  //   {
+  //     label: 'Upload File',
+  //     click: async () => {
+  //       const result = await dialog.showOpenDialog({
+  //         properties: ['openFile'],
+  //         filters: [
+  //           { name: 'All Files', extensions: ['*'] }
+  //         ]
+  //       })
         
-        if (!result.canceled && result.filePaths.length > 0) {
-          showWindow()
-          mainWindow?.webContents.send('file-selected', result.filePaths[0])
-        }
-      }
-    },
-    { type: 'separator' },
-    {
-      label: 'Quit',
-      click: () => {
-        app.quit()
-      }
-    }
-  ])
+  //       if (!result.canceled && result.filePaths.length > 0) {
+  //         showWindow()
+  //         mainWindow?.webContents.send('file-selected', result.filePaths[0])
+  //       }
+  //     }
+  //   },
+  //   { type: 'separator' },
+  //   {
+  //     label: 'Quit',
+  //     click: () => {
+  //       app.quit()
+  //     }
+  //   }
+  // ])
 
   tray.setToolTip('FastDrop - Drag files here to upload')
-  tray.setContextMenu(contextMenu)
+  // tray.setContextMenu(contextMenu)
   
   tray.on('click', () => {
     showWindow()
@@ -233,8 +233,36 @@ function showWindow(): void {
     const bounds = tray?.getBounds()
     if (bounds) {
       const windowBounds = mainWindow.getBounds()
-      const x = Math.round(bounds.x + bounds.width / 2 - windowBounds.width / 2)
-      const y = Math.round(bounds.y + bounds.height + 4)
+      const display = screen.getDisplayNearestPoint({ x: bounds.x, y: bounds.y })
+      const screenBounds = display.workArea
+      
+      let x = Math.round(bounds.x + bounds.width / 2 - windowBounds.width / 2)
+      let y: number
+      
+      if (process.platform === 'win32') {
+        // No Windows, posicionar acima da tray
+        y = Math.round(bounds.y - windowBounds.height - 4)
+      } else {
+        // No macOS, posicionar abaixo da tray (comportamento atual)
+        y = Math.round(bounds.y + bounds.height + 4)
+      }
+      
+      // Verificar se a janela está dentro dos limites da tela
+      // Ajustar posição X se necessário
+      if (x < screenBounds.x) {
+        x = screenBounds.x + 8 // margem de 8px da borda esquerda
+      } else if (x + windowBounds.width > screenBounds.x + screenBounds.width) {
+        x = screenBounds.x + screenBounds.width - windowBounds.width - 8 // margem de 8px da borda direita
+      }
+      
+      // Ajustar posição Y se necessário
+      if (y < screenBounds.y) {
+        // Se a janela ficaria acima da tela, posicionar na parte superior
+        y = screenBounds.y + 8
+      } else if (y + windowBounds.height > screenBounds.y + screenBounds.height) {
+        // Se a janela ficaria abaixo da tela, posicionar na parte inferior
+        y = screenBounds.y + screenBounds.height - windowBounds.height - 8
+      }
       
       mainWindow.setPosition(x, y, false)
     }
