@@ -202,6 +202,13 @@ function createTray(): void {
   // tray.setContextMenu(contextMenu)
   
   tray.on('click', () => {
+
+    if(mainWindow && mainWindow.isVisible())
+    {
+      mainWindow.hide();
+      return;
+    }
+
     showWindow()
   })
 
@@ -221,9 +228,9 @@ function createTray(): void {
   if (process.platform === 'darwin') {
     tray.on('mouse-enter', () => {
       // Small delay to avoid accidental triggers
-      setTimeout(() => {
-        showWindow()
-      }, 200)
+      // setTimeout(() => {
+      //   showWindow()
+      // }, 200)
     })
   }
 }
@@ -266,14 +273,15 @@ function showWindow(): void {
       
       mainWindow.setPosition(x, y, false)
     }
+
     mainWindow.show()
     mainWindow.focus()
   }
 }
 
 app.whenReady().then(async () => {
-  // Hide app from dock on macOS
-  if (process.platform === 'darwin' && app.dock) {
+  // Hide app from dock
+  if (app.dock) {
     app.dock.hide()
   }
   

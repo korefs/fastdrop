@@ -1,7 +1,7 @@
 import { Button } from '@/components/ui/button'
 import { Progress } from '@/components/ui/progress'
 import { cn } from '@/lib/utils'
-import { AlertCircle, Check, Cloud, FileUp, Settings, Upload, X } from 'lucide-react'
+import { AlertCircle, Check, Cloud, Copy, FileUp, Plus, Settings, Upload, X } from 'lucide-react'
 import { useEffect, useState } from 'react'
 import { AvailableProviders } from './interfaces/types'
 
@@ -61,6 +61,9 @@ function App() {
   const [newVersion, setNewVersion] = useState('')
   const [autoCopy, setAutoCopyState] = useState(false)
   const [updateError, setUpdateError] = useState('')
+  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false)
+  const [fileToDelete, setFileToDelete] = useState<number | null>(null)
+  const [copiedFiles, setCopiedFiles] = useState<Set<number>>(new Set())
 
   const saveFilesToHistory = async (filesToSave: FileUpload[]) => {
     if (window.electronAPI) {
@@ -189,7 +192,7 @@ function App() {
 
       // Auto-copy URL if enabled
       if (autoCopy && url) {
-        copyToClipboard(url.trim())
+        copyToClipboard(url.trim(), fileIndex)
       }
 
       // Show notification for successful upload
@@ -224,10 +227,25 @@ function App() {
     const newFiles = files.filter((_, i) => i !== index)
     setFiles(newFiles)
     saveFilesToHistory(newFiles)
+    setShowDeleteConfirm(false)
+    setFileToDelete(null)
   }
 
-  const copyToClipboard = (url: string) => {
+  const confirmDeleteFile = (index: number) => {
+    setFileToDelete(index)
+    setShowDeleteConfirm(true)
+  }
+
+  const copyToClipboard = (url: string, fileIndex: number) => {
     navigator.clipboard.writeText(url)
+    setCopiedFiles(prev => new Set([...prev, fileIndex]))
+    setTimeout(() => {
+      setCopiedFiles(prev => {
+        const newSet = new Set(prev)
+        newSet.delete(fileIndex)
+        return newSet
+      })
+    }, 2000)
   }
 
   const closeApp = () => {
@@ -305,6 +323,20 @@ function App() {
           <h1 className="font-semibold text-foreground">FastDrop</h1>
         </div>
         <div className="flex items-center gap-2">
+          {files.length > 0 && (
+            <Button
+              variant="ghost"
+              size="icon"
+              onClick={() => {
+                if (window.electronAPI) {
+                  window.electronAPI.showFileDialog()
+                }
+              }}
+              className="w-6 h-6 hover:bg-accent hover:text-accent-foreground"
+            >
+              <Plus className="w-4 h-4" />
+            </Button>
+          )}
           <Button
             variant="ghost"
             size="icon"
@@ -447,16 +479,26 @@ function App() {
                     <Button
                       size="sm"
                       variant="outline"
-                      onClick={() => copyToClipboard(file.url!)}
+                      onClick={() => copyToClipboard(file.url!, index)}
                       className="text-xs px-3 py-1"
                     >
-                      Copy URL
+                      {copiedFiles.has(index) ? (
+                        <>
+                          <Check className="w-3 h-3 mr-1" />
+                          Copied!
+                        </>
+                      ) : (
+                        <>
+                          <Copy className="w-3 h-3 mr-1" />
+                          Copy URL
+                        </>
+                      )}
                     </Button>
                   )}
                   <Button
                     variant="ghost"
                     size="icon"
-                    onClick={() => removeFile(index)}
+                    onClick={() => confirmDeleteFile(index)}
                     className="w-6 h-6 hover:bg-destructive/20 hover:text-destructive"
                   >
                     <X className="w-3 h-3" />
@@ -687,6 +729,52 @@ function App() {
                   Save
                 </Button>
               </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Delete Confirmation Modal */}
+      {showDeleteConfirm && fileToDelete !== null && (
+        <div className="fixed inset-0 bg-background/80 backdrop-blur-sm flex items-center justify-center z-50 p-2">
+          <div className="bg-card rounded-lg border border-border p-4 w-full max-w-[350px] mx-2">
+            <div className="flex items-center justify-center mb-3">
+              <AlertCircle className="w-10 h-10 text-destructive" />
+            </div>
+            <h3 className="text-base font-semibold text-foreground text-center mb-3">
+              Confirmar exclusão
+            </h3>
+            <p className="text-sm text-muted-foreground text-center mb-4 leading-relaxed">
+              Tem certeza que deseja remover{" "}
+              <span className="font-medium text-foreground break-all">
+                {files[fileToDelete]?.name}
+              </span>{" "}
+              da lista?
+            </p>
+            <div className="flex gap-2 justify-end">
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => {
+                  setShowDeleteConfirm(false)
+                  setFileToDelete(null)
+                }}
+                className="text-xs px-3 py-1.5"
+              >
+                Cancelar
+              </Button>
+              <Button
+                variant="destructive"
+                size="sm"
+                onClick={() => {
+                  if (fileToDelete !== null) {
+                    removeFile(fileToDelete)
+                  }
+                }}
+                className="text-xs px-3 py-1.5"
+              >
+                Excluir
+              </Button>
             </div>
           </div>
         </div>
